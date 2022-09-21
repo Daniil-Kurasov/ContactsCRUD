@@ -1,0 +1,296 @@
+﻿@model IEnumerable<ContactsCRUD.Models.ContactDB>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        BirthDate.max = new Date().toISOString().split("T")[0];
+        loadData();
+    });
+
+    function loadData() {
+        $.ajax({
+            url: "/Home/List",
+            type: "GET",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                var html = '';
+                $.each(result, function (key, item) {
+                    html += '<tr>';
+                    html += '<td>' + item.Id + '</td>';
+                    html += '<td>' + item.Name + '</td>';
+                    html += '<td>' + item.MobilePhone + '</td>';
+                    html += '<td>' + item.JobTitle + '</td>';
+                    html += '<td>' + item.BirthDate + '</td>';
+                    html += '<td><button type="button" class="btn btn-secondary "href="#" onclick="return GetById(' + item.Id + ')">Edit</button>   <button type="button" class="btn btn-danger href="#" onclick="Delele(' + item.Id + ')">Delete</button></td>';
+                    html += '</tr>';
+                });
+                $('.tbody').html(html);
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    function Add() {
+        if (validate()) {
+            var empObj = {
+                Id: $('#Id').val(),
+                Name: $('#Name').val(),
+                MobilePhone: $('#MobilePhone').val(),
+                JobTitle: $('#JobTitle').val(),
+                BirthDate: $('#BirthDate').val()
+            };
+            $.ajax({
+                url: "/Home/Add",
+                data: JSON.stringify(empObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    }
+
+    function GetById(Id) {
+        $('#Name').css('border-color', 'lightgrey');
+        $('#MobilePhone').css('border-color', 'lightgrey');
+        $('#JobTitle').css('border-color', 'lightgrey');
+        $('#BirthDate').css('border-color', 'lightgrey');
+        $.ajax({
+            url: "/Home/GetById/" + Id,
+            typr: "GET",
+            contentType: "application/json;charset=UTF-8",
+            dataType: "json",
+            success: function (result) {
+                $('#Id').val(result.Id);
+                $('#Name').val(result.Name);
+                $('#MobilePhone').val(result.MobilePhone);
+                $('#JobTitle').val(result.JobTitle);
+
+                var from = result.BirthDate.split(".");
+                var f = from[2] + "-" + from[1] + "-" + from[0];
+                $('#BirthDate').val(f);
+
+                $('#myModal').modal('show');
+
+                $('#Id').show();
+                $('#labelId').show();
+                $('#myModalLabel').text('Edit the contact');
+
+                $('#btnUpdate').show();
+                $('#btnAdd').hide();
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+        return false;
+    }
+
+    function Update() {
+        if (validate()) {
+            var empObj = {
+                Id: $('#Id').val(),
+                Name: $('#Name').val(),
+                MobilePhone: $('#MobilePhone').val(),
+                JobTitle: $('#JobTitle').val(),
+                BirthDate: $('#BirthDate').val(),
+            };
+            $.ajax({
+                url: "/Home/Update",
+                data: JSON.stringify(empObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                    $('#Id').val("");
+                    $('#Name').val("");
+                    $('#MobilePhone').val("");
+                    $('#JobTitle').val("");
+                    $('#BirthDate').val("");
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    }
+
+    function Delele(Id) {
+        if (confirm("Are you sure you want to delete this record?")) {
+            $.ajax({
+                url: "/Home/Delete/" + Id,
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    }
+
+    function clearTextBox() {
+
+        $('#Id').val("");
+        $('#Name').val("");
+        $('#MobilePhone').val("");
+        $('#JobTitle').val("");
+        $('#BirthDate').val("");
+
+        $('#Id').hide();
+        $('#labelId').hide();
+
+        $('#myModalLabel').text('Add a new contact');
+
+
+        $('#myModal').modal('show');
+        $('#btnUpdate').hide();
+        $('#btnAdd').show();
+
+        $('#Name').css('border-color', 'lightgrey');
+        $('#MobilePhone').css('border-color', 'lightgrey');
+        $('#JobTitle').css('border-color', 'lightgrey');
+        $('#BirthDate').css('border-color', 'lightgrey');
+    }
+
+    function closer() {
+        $('#myModal').modal('hide');
+    }
+
+    function validate() {
+        return checkTextLength() && checkPhone();
+    }
+
+    function checkTextLength() {
+        var isValid = true;
+        if ($('#Name').val().trim() == "") {
+            $('#Name').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#Name').css('border-color', 'lightgrey');
+        }
+        if ($('#MobilePhone').val().trim() == "") {
+            $('#MobilePhone').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#MobilePhone').css('border-color', 'lightgrey');
+        }
+        if ($('#JobTitle').val().trim() == "") {
+            $('#JobTitle').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#JobTitle').css('border-color', 'lightgrey');
+        }
+        if ($('#BirthDate').val().trim() == "") {
+            $('#BirthDate').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#BirthDate').css('border-color', 'lightgrey');
+        }
+        return isValid;
+    }
+
+    function checkPhone() {
+        var pattern = /^(\+375)(29|25|44|33)(\d{3})(\d{2})(\d{2})$/;
+        if ($('#MobilePhone').val().match(pattern)) {
+            return true;
+        }
+        $('#MobilePhone').css('border-color', 'Red');
+        return false;
+    }
+</script>
+
+<style type="text/css">
+    input{
+        margin-bottom:10px;
+    }
+    label {
+        margin-left: 5px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: black;
+        font-size: 16px;
+    }
+</style>
+
+<div class="container">
+    <h2>Contact list</h2>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add a new contact</button><br /><br />
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Mobile phone</th>
+                <th>Job title</th>
+                <th>Birthdate</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody class="tbody">
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Add a new contact</h4>
+                <button type="button" class="btn btn-close" onclick="closer();"/>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="Id" id="labelId">Id</label>
+                        <input type="text" class="form-control" id="Id" placeholder="Id" disabled="disabled" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <input type="text" maxlength="30" class="form-control" id="Name" placeholder="name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="MobilePhone">Mobile phone</label>
+                        <input type="text" maxlength="13" class="form-control" id="MobilePhone" placeholder="+375XXXXXXXX" />
+                    </div>
+                    <div class="form-group">
+                        <label for="JobTitle">Job title</label>
+                        <input type="text" maxlength="50" class="form-control" id="JobTitle" placeholder="job title" />
+                    </div>
+                    <div class="form-group">
+                        <label for="BirthDate">Birthdate</label>
+                        <input type="date" min="1900-01-01" class="form-control" id="BirthDate" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Add</button>
+                <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;" onclick="Update();">Edit</button>
+                <button type="button" class="btn btn-default" onclick="closer();">Close</button>
+            </div>
+        </div>
+    </div>
+</div> 
